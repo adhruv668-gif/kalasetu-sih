@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-heritage-primary: #003366; 
+  --color-heritage-secondary: #00509E;
+  --color-heritage-accent: #FF9933; 
+  --color-heritage-bg: #F0F4F8; 
+}
+
+body {
+  background-color: var(--color-heritage-bg);
+  color: #1a202c;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
