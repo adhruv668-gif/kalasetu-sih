@@ -1,9 +1,18 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Fingerprint, Search } from 'lucide-react';
+import { ChevronLeft, LogOut, Phone, ShieldCheck, User } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const BuyerProfile: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
@@ -12,40 +21,57 @@ export const BuyerProfile: React.FC = () => {
           <button onClick={() => navigate(-1)} className="p-1">
             <ChevronLeft className="w-6 h-6 text-gray-800" />
           </button>
-          <h2 className="text-xl font-bold text-gray-800">Citizen Login</h2>
+          <h2 className="text-xl font-bold text-gray-800">My Profile</h2>
         </div>
       </div>
 
-      <div className="p-6 flex-1 flex flex-col items-center pt-10">
-        <h2 className="text-2xl font-bold text-[#003366] mb-1 mt-4">KalaSetu Portal</h2>
-        <p className="text-sm text-gray-500 mb-8 text-center max-w-[280px]">Official Govt. of India portal for verifying and purchasing authentic heritage crafts.</p>
-
-        <div className="bg-white w-full rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Mobile Number</label>
-            <div className="flex gap-2">
-              <span className="bg-gray-100 border border-gray-200 rounded-lg p-3 text-gray-600 font-medium">+91</span>
-              <input type="tel" placeholder="Enter 10 digit number" className="flex-1 border border-gray-200 rounded-lg p-3 outline-none focus:border-[#003366]" />
-            </div>
-          </div>
-          <button className="w-full bg-[#003366] text-white font-bold py-3 rounded-lg mt-2 shadow-md">
-            Generate OTP
-          </button>
-
-          <div className="flex items-center gap-4 my-4">
-            <hr className="flex-1 border-gray-200" />
-            <span className="text-xs text-gray-400 font-medium uppercase">OR LOGIN WITH</span>
-            <hr className="flex-1 border-gray-200" />
-          </div>
-
-          <button className="w-full bg-white text-gray-700 border border-gray-300 font-bold py-3 rounded-lg flex items-center justify-center gap-2">
-            <Search className="w-5 h-5 text-blue-500" /> MeriPehchaan (SSO)
-          </button>
-          <button className="w-full bg-white text-gray-700 border border-gray-300 font-bold py-3 rounded-lg flex items-center justify-center gap-2">
-            <Fingerprint className="w-5 h-5 text-gray-500" /> Aadhaar OTP
-          </button>
+      <div className="p-6 flex-1 flex flex-col items-center pt-8">
+        {/* User Avatar */}
+        <div className="w-20 h-20 bg-heritage-primary rounded-full flex items-center justify-center shadow-lg mb-4">
+          <User className="w-10 h-10 text-white" />
         </div>
+
+        <h2 className="text-xl font-bold text-gray-800 mb-1">Citizen User</h2>
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+          <Phone className="w-4 h-4" />
+          <span>{user?.phoneNumber || 'Not available'}</span>
+        </div>
+
+        {/* Verification Badge */}
+        <div className="bg-green-50 text-green-800 p-4 rounded-xl flex items-center gap-3 w-full mb-6 border border-green-200">
+          <ShieldCheck className="w-6 h-6 text-green-600" />
+          <div>
+            <p className="font-bold text-sm">Phone Verified</p>
+            <p className="text-xs text-green-600">Your identity has been verified via OTP</p>
+          </div>
+        </div>
+
+        {/* Info Cards */}
+        <div className="w-full flex flex-col gap-3">
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Login Method</p>
+            <p className="text-sm font-medium text-gray-800">Mobile OTP Authentication</p>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Role</p>
+            <p className="text-sm font-medium text-gray-800">Citizen / Buyer</p>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm opacity-50">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Aadhaar Link</p>
+            <p className="text-sm font-medium text-gray-400">Coming Soon</p>
+          </div>
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center gap-2 text-red-500 font-bold py-3 mt-8 w-full"
+        >
+          <LogOut className="w-5 h-5" /> Sign Out
+        </button>
       </div>
     </div>
   );
 };
+
+

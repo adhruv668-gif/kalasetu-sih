@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { ChevronLeft, UserPlus, Shield, UserCog, LogOut } from 'lucide-react';
 
 export const ArtisanProfile: React.FC = () => {
+  const { t } = useLanguage();
   const { artisans, currentArtisanId } = useAppContext();
+  const { logout, artisanProfile, user } = useAuth();
   const navigate = useNavigate();
-  const artisan = artisans.find(a => a.id === currentArtisanId);
+  const artisan = artisanProfile || artisans.find(a => a.id === currentArtisanId);
   const [delegates] = useState([{ name: 'Suresh Kumar', relation: 'Son', role: 'Digital Facilitator' }]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   if (!artisan) return null;
 
@@ -21,9 +30,12 @@ export const ArtisanProfile: React.FC = () => {
       </div>
 
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-orange-100 flex flex-col items-center text-center">
-        <img src={artisan.photoUrl} alt={artisan.name} className="w-24 h-24 rounded-full object-cover border-4 border-heritage-bg mb-3" />
+        <img src={artisan.photoUrl} alt={artisan.name} className="w-24 h-24 rounded-full object-cover border-4 border-heritage-bg mb-3" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://placehold.co/600x600/F0F4F8/003366?text=Image+Unavailable"; }} />
         <h3 className="text-xl font-bold text-gray-800">{artisan.name}</h3>
         <p className="text-sm text-gray-500">{artisan.region} • {artisan.craft}</p>
+        {user?.phoneNumber && (
+          <p className="text-xs text-gray-400 mt-1">{user.phoneNumber}</p>
+        )}
         <button className="text-xs bg-gray-100 px-4 py-2 rounded-full mt-4 font-medium text-gray-700">
           Edit Details
         </button>
@@ -60,9 +72,31 @@ export const ArtisanProfile: React.FC = () => {
         </div>
       </div>
 
-      <button className="flex items-center justify-center gap-2 text-red-500 font-bold py-3">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-2 mb-4">
+          <UserCog className="w-5 h-5 text-[#003366]" />
+          <h3 className="font-bold text-gray-800">Train a Successor</h3>
+        </div>
+        <p className="text-sm text-gray-600 mb-4 leading-relaxed font-medium">
+          Pass down your ancestral craft. List yourself as open to taking on an apprentice. The Ministry provides stipends to verified apprentices.
+        </p>
+        <div className="flex justify-between items-center bg-[#E8F1F8]/80 p-4 rounded-xl border border-blue-200">
+          <div>
+            <h4 className="font-bold text-sm text-[#003366]">Accepting Apprentices</h4>
+            <p className="text-xs text-[#00509E] mt-1 font-medium">Currently listed on public directory</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" className="sr-only peer" defaultChecked />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+          </label>
+        </div>
+      </div>
+
+      <button onClick={handleLogout} className="flex items-center justify-center gap-2 text-red-500 font-bold py-3 btn-press">
         <LogOut className="w-5 h-5" /> Sign Out
       </button>
     </div>
   );
 };
+
+

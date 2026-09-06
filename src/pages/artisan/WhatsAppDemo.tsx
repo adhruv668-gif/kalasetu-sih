@@ -1,8 +1,10 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Phone, Video, MoreVertical, Mic, Camera, Paperclip } from 'lucide-react';
 
 export const WhatsAppDemo: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   return (
@@ -46,7 +48,7 @@ export const WhatsAppDemo: React.FC = () => {
 
         <div className="flex gap-2 justify-end">
           <div className="bg-[#DCF8C6] p-2 rounded-tl-xl rounded-b-xl shadow-sm max-w-[85%] relative">
-            <img src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=300&q=80" alt="Product" className="rounded-lg mb-4 w-48 object-cover" />
+            <img src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=300&q=80" alt="Product" className="rounded-lg mb-4 w-48 object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://placehold.co/600x600/F0F4F8/003366?text=Image+Unavailable"; }} />
             <span className="text-[10px] text-gray-500 absolute bottom-1 right-2 flex items-center gap-1">
               10:45 AM <span className="text-blue-500">✓✓</span>
             </span>
@@ -105,3 +107,5 @@ export const WhatsAppDemo: React.FC = () => {
     </div>
   );
 };
+
+

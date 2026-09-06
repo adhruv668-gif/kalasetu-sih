@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react';
 
 export const Checkout: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [placed, setPlaced] = useState(false);
 
@@ -64,3 +66,5 @@ export const Checkout: React.FC = () => {
     </div>
   );
 };
+
+

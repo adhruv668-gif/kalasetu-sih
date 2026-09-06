@@ -1,383 +1,284 @@
-import React, { useState, useRef } from 'react';
-import { Mic, Camera, CheckCircle2, ChevronRight, Calculator } from 'lucide-react';
-import { useAppContext } from '../../context/AppContext';
+import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { Camera, Mic, Upload, CheckCircle2, Loader2, IndianRupee } from 'lucide-react';
+import { useAppContext } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { extractProductDetails, extractProductDetailsFromImage } from '../../lib/gemini';
-
-type Step = 'choose-method' | 'recording' | 'processing' | 'review' | 'pricing';
+import type { Product } from '../../types';
 
 export const AddProduct: React.FC = () => {
-  const [step, setStep] = useState<Step>('choose-method');
-  const [transcript, setTranscript] = useState('');
-  const mediaRecorderRef = useRef<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { addProduct, currentArtisanId } = useAppContext();
+  const { t } = useLanguage();
   const navigate = useNavigate();
+  const { addProduct, currentArtisanId } = useAppContext();
+  const { artisanProfile } = useAuth();
+  
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  
+  const artisanId = artisanProfile?.id || currentArtisanId;
 
-  const [uploadedPhotoUrl, setUploadedPhotoUrl] = useState('https://images.unsplash.com/photo-1610701596007-11502861dcfa?auto=format&fit=crop&w=400&q=80');
-  const [errorMsg, setErrorMsg] = useState('');
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<Product>>({
     title: '',
     description: '',
     category: '',
-    tags: '',
-    materialsCost: 0,
-    laborHours: 0,
-    suggestedPrice: 0,
     finalPrice: 0,
+    suggestedPrice: 0,
+    photoUrl: 'https://placehold.co/600x400/eeeeee/999999?text=Product+Photo',
   });
 
-  const handleVoiceRecord = () => {
-    setStep('recording');
-    setErrorMsg('');
-    setTranscript('');
-    
-    if ('webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'en-IN';
+  const handleVoiceInput = () => {
+    // Check if browser supports speech recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice input is not supported in this browser.");
+      return;
+    }
 
-      recognition.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscriptStr = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscriptStr += event.results[i][0].transcript;
-          } else {
-            interimTranscript += event.results[i][0].transcript;
-          }
-        }
-        if (finalTranscriptStr) setTranscript(prev => prev + finalTranscriptStr);
-      };
+    const recognition = new SpeechRecognition();
+    // NEW: Set language based on selected language
+    recognition.lang = localStorage.getItem('language') === 'hi' ? 'hi-IN' : 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
 
-      recognition.onend = () => {
-        processAIText(transcript); // Uses state, might be delayed. Best to just process in the callback or wait for user to click "Done"
-      };
+    setIsRecording(true);
+
+    recognition.start();
+
+    recognition.onresult = async (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setIsRecording(false);
+      setIsProcessing(true);
       
-      recognition.start();
-      mediaRecorderRef.current = recognition;
-    } else {
-      setTimeout(() => {
-        setTranscript("I made a beautiful blue ceramic vase with floral design. It took me 5 hours. Material cost was 150 rupees.");
-        processAIText("I made a beautiful blue ceramic vase with floral design. It took me 5 hours. Material cost was 150 rupees.");
-      }, 3000);
-    }
+      try {
+        const extracted = await extractProductDetails(transcript);
+        setFormData(prev => ({
+           ...prev,
+           ...extracted,
+           suggestedPrice: extracted.price,
+           finalPrice: extracted.price ? Math.round(extracted.price * 1.05) : 0
+        }));
+        setShowForm(true);
+      } catch (error) {
+        console.error("AI Extraction failed", error);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsRecording(false);
+      // Fallback to mock if mic fails (e.g., permissions)
+      fallbackMockVoice();
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      processAIText(transcript);
-    } else {
-      processAIText(transcript);
-    }
+  const fallbackMockVoice = () => {
+    setIsProcessing(true);
+    setTimeout(async () => {
+      try {
+        const mockTranscript = "Yeh ek blue color ka handloom silk saree hai, bohot soft material. Iska price ₹3500 hai.";
+        const extracted = await extractProductDetails(mockTranscript);
+        setFormData(prev => ({
+           ...prev,
+           ...extracted,
+           suggestedPrice: extracted.price,
+           finalPrice: extracted.price ? Math.round(extracted.price * 1.05) : 0
+        }));
+        setShowForm(true);
+      } finally {
+        setIsProcessing(false);
+      }
+    }, 1500);
   };
 
-  const processAIText = async (textToProcess: string) => {
-    if (!textToProcess) {
-       textToProcess = transcript;
-    }
-    if (!textToProcess) {
-        setErrorMsg("Didn't hear anything. Try again!");
-        setStep('choose-method');
-        return;
-    }
-    setStep('processing');
-    try {
-      const data = await extractProductDetails(textToProcess);
-      applyAIResult(data);
-    } catch (e: any) {
-      console.error(e);
-      setErrorMsg(e.message || "Failed to process audio with AI.");
-      setStep('choose-method');
-    }
-  };
-
-  const handleImageCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setStep('processing');
-    setErrorMsg('');
-
-    // Create a local object URL for preview
-    const objectUrl = URL.createObjectURL(file);
-    setUploadedPhotoUrl(objectUrl);
-
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = (reader.result as string).split(',')[1];
-      try {
-        const data = await extractProductDetailsFromImage(base64String, file.type);
-        applyAIResult(data);
-      } catch (err: any) {
-        console.error(err);
-        setErrorMsg(err.message || "Failed to analyze image with AI.");
-        setStep('choose-method');
-      }
-    };
-    reader.readAsDataURL(file);
+    setIsProcessing(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = reader.result as string;
+        
+        try {
+          const mimeType = file.type || "image/jpeg";
+          const extracted = await extractProductDetailsFromImage(base64Data, mimeType);
+          setFormData(prev => ({
+             ...prev,
+             ...extracted,
+             suggestedPrice: extracted.price || 0,
+             finalPrice: extracted.price ? Math.round(extracted.price * 1.05) : 0,
+             photoUrl: base64Data // Use local preview
+          }));
+          setShowForm(true);
+        } catch (error) {
+          console.error("Vision AI failed", error);
+        } finally {
+           setIsProcessing(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+       console.error("File processing failed", error);
+       setIsProcessing(false);
+    }
   };
 
-  const applyAIResult = (data: any) => {
-    const materialsCost = Number(data.materialsCost) || 0;
-    const laborHours = Number(data.laborHours) || 0;
-    const suggestedPrice = calculateSuggestedPrice(materialsCost, laborHours);
-
-    setFormData({
-      title: data.title || '',
-      description: data.description || '',
-      category: data.category || '',
-      tags: data.tags || '',
-      materialsCost,
-      laborHours,
-      suggestedPrice,
-      finalPrice: suggestedPrice,
-    });
-    setStep('review');
-  };
-
-  const calculateSuggestedPrice = (materials: number, hours: number) => {
-    const hourlyWage = 100;
-    const margin = 1.2;
-    return Math.round((materials + (hours * hourlyWage)) * margin);
-  };
-
-  const handlePricingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const numValue = Number(value);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    setFormData(prev => {
-      const updated = { ...prev, [name]: numValue };
-      if (name === 'materialsCost' || name === 'laborHours') {
-        const suggested = calculateSuggestedPrice(updated.materialsCost, updated.laborHours);
-        updated.suggestedPrice = suggested;
-        updated.finalPrice = suggested;
-      }
-      return updated;
-    });
-  };
+    const newProduct: Product = {
+      id: `p_${Date.now()}`,
+      artisanId: artisanId,
+      title: formData.title || 'Untitled',
+      description: formData.description || '',
+      category: formData.category || 'other',
+      tags: formData.tags || [],
+      materialsCost: formData.materialsCost || 0,
+      laborHours: formData.laborHours || 0,
+      suggestedPrice: formData.suggestedPrice || 0,
+      finalPrice: formData.finalPrice || formData.suggestedPrice || 0,
+      photoUrl: formData.photoUrl || '',
+      status: 'published',
+      syncStatus: 'pending' // Starts pending for offline-first
+    };
 
-  const handlePublish = () => {
-    addProduct({
-      artisanId: currentArtisanId,
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      tags: formData.tags.split(',').map(t => t.trim()),
-      materialsCost: formData.materialsCost,
-      laborHours: formData.laborHours,
-      suggestedPrice: formData.suggestedPrice,
-      finalPrice: formData.finalPrice,
-      photoUrl: uploadedPhotoUrl,
-      status: 'published'
-    });
+    addProduct(newProduct);
     navigate('/artisan/products');
   };
 
+  if (isProcessing) {
+     return (
+        <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
+           <Loader2 className="w-12 h-12 text-heritage-primary animate-spin" />
+           <h3 className="text-xl font-bold text-gray-800 text-center">AI is analyzing...</h3>
+           <p className="text-gray-500 text-center text-sm px-8">Extracting product details, category, and suggested price automatically.</p>
+        </div>
+     );
+  }
+
+  if (showForm) {
+    return (
+      <div className="flex flex-col gap-4">
+        <h2 className="text-2xl font-bold text-gray-800">Verify Details</h2>
+        <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm flex gap-2 items-start border border-green-200">
+           <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+           <p>AI successfully extracted details. Please verify before publishing.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <img src={formData.photoUrl} alt="Preview" className="w-full h-48 object-cover rounded-xl border border-gray-200" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://placehold.co/600x600/F0F4F8/003366?text=Image+Unavailable"; }} />
+          
+          <div className="flex flex-col gap-1">
+             <label className="text-xs font-bold text-gray-500 uppercase">Product Name</label>
+             <input 
+               type="text" 
+               value={formData.title} 
+               onChange={e => setFormData({...formData, title: e.target.value})}
+               className="p-3 border border-gray-300 rounded-xl font-medium"
+               required
+             />
+          </div>
+
+          <div className="flex flex-col gap-1">
+             <label className="text-xs font-bold text-gray-500 uppercase">Category</label>
+             <select 
+               value={formData.category}
+               onChange={e => setFormData({...formData, category: e.target.value})}
+               className="p-3 border border-gray-300 rounded-xl font-medium bg-white"
+             >
+                <option value="pottery">Pottery & Ceramics</option>
+                <option value="woodwork">Woodwork & Carving</option>
+                <option value="weaving">Textiles & Weaving</option>
+                <option value="metalcraft">Metalcraft</option>
+                <option value="other">Other</option>
+             </select>
+          </div>
+
+          <div className="flex flex-col gap-1">
+             <label className="text-xs font-bold text-gray-500 uppercase">Your Price (₹)</label>
+             <div className="relative">
+               <IndianRupee className="w-5 h-5 absolute left-3 top-3.5 text-gray-400" />
+               <input 
+                 type="number" 
+                 value={formData.suggestedPrice} 
+                 onChange={e => {
+                    const price = Number(e.target.value);
+                    setFormData({...formData, suggestedPrice: price, finalPrice: Math.round(price * 1.05)})
+                 }}
+                 className="p-3 pl-10 border border-gray-300 rounded-xl font-bold w-full"
+                 required
+               />
+             </div>
+             <p className="text-[10px] text-gray-500">Platform adds 5% operational fee. Buyer pays ₹{formData.finalPrice}</p>
+          </div>
+
+          <div className="flex flex-col gap-1">
+             <label className="text-xs font-bold text-gray-500 uppercase">Story / Description</label>
+             <textarea 
+               value={formData.description} 
+               onChange={e => setFormData({...formData, description: e.target.value})}
+               className="p-3 border border-gray-300 rounded-xl font-medium min-h-[100px]"
+               required
+             />
+          </div>
+
+          <button type="submit" className="bg-heritage-primary text-white font-bold text-lg py-4 rounded-xl mt-4 active:scale-95 transition shadow-lg shadow-blue-900/20">
+             Publish to Catalog
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-2xl font-bold text-gray-800">Add New Product</h2>
+      <h2 className="text-2xl font-bold text-gray-800">Add New Item</h2>
+      <p className="text-gray-500">How would you like to add this product?</p>
+
+      <button 
+        onClick={handleVoiceInput}
+        className={`flex flex-col items-center justify-center gap-4 bg-white p-8 rounded-2xl shadow-sm border ${isRecording ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
+      >
+        <div className={`p-6 rounded-full ${isRecording ? 'bg-red-100 animate-pulse' : 'bg-blue-50'}`}>
+          <Mic className={`w-12 h-12 ${isRecording ? 'text-red-500' : 'text-blue-600'}`} />
+        </div>
+        <div className="text-center">
+           <h3 className="text-lg font-bold text-gray-800">{isRecording ? 'Listening...' : 'Speak to AI'}</h3>
+           <p className="text-sm text-gray-500 mt-1">"I made a red clay pot for ₹200"</p>
+        </div>
+      </button>
+
+      <div className="relative">
+         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+         <div className="relative flex justify-center"><span className="bg-heritage-bg px-4 text-sm text-gray-400 font-bold uppercase">OR</span></div>
+      </div>
+
+      <label className="flex flex-col items-center justify-center gap-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition">
+        <div className="p-6 rounded-full bg-orange-50">
+          <Camera className="w-12 h-12 text-heritage-secondary" />
+        </div>
+        <div className="text-center">
+           <h3 className="text-lg font-bold text-gray-800">Scan Product</h3>
+           <p className="text-sm text-gray-500 mt-1">Take a photo, AI will write the details</p>
+        </div>
+        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} />
+      </label>
       
-      {errorMsg && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-200">
-          {errorMsg}
-        </div>
-      )}
-
-      {step === 'choose-method' && (
-        <div className="flex flex-col gap-4 mt-8">
-          <button 
-            onClick={handleVoiceRecord}
-            className="flex items-center gap-4 p-6 bg-heritage-primary text-white rounded-2xl shadow-lg active:scale-95 transition"
-          >
-            <div className="bg-white/20 p-4 rounded-full">
-              <Mic className="w-8 h-8" />
-            </div>
-            <div className="text-left flex-1">
-              <h3 className="text-xl font-bold">Use Voice (AI)</h3>
-              <p className="text-sm text-heritage-bg opacity-90">Just describe your product</p>
-            </div>
-            <ChevronRight />
-          </button>
-
-          <button 
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-4 p-6 bg-white text-gray-800 border-2 border-heritage-secondary rounded-2xl shadow-sm active:scale-95 transition"
-          >
-            <div className="bg-gray-100 p-4 rounded-full">
-              <Camera className="w-8 h-8 text-heritage-primary" />
-            </div>
-            <div className="text-left flex-1">
-              <h3 className="text-xl font-bold">Take Photo (AI)</h3>
-              <p className="text-sm text-gray-500">Auto-detect from an image</p>
-            </div>
-            <ChevronRight />
-          </button>
-          <input 
-            type="file" 
-            accept="image/*" 
-            capture="environment" 
-            ref={fileInputRef} 
-            className="hidden" 
-            onChange={handleImageCapture}
-          />
-        </div>
-      )}
-
-      {step === 'recording' && (
-        <div className="flex flex-col items-center justify-center gap-8 py-12">
-          <div className="relative">
-            <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-20"></div>
-            <button 
-              onClick={stopRecording}
-              className="relative bg-red-500 text-white p-8 rounded-full shadow-xl"
-            >
-              <Mic className="w-12 h-12" />
-            </button>
-          </div>
-          <div className="text-center">
-            <h3 className="text-xl font-bold mb-2">Listening...</h3>
-            <p className="text-gray-500 italic min-h-[3rem] px-4">
-              "{transcript || 'Speak now...'}"
-            </p>
-          </div>
-          <button 
-            onClick={stopRecording}
-            className="px-8 py-3 bg-gray-800 text-white rounded-full font-medium mt-4"
-          >
-            Done
-          </button>
-        </div>
-      )}
-
-      {step === 'processing' && (
-        <div className="flex flex-col items-center justify-center gap-4 py-16">
-          <div className="w-16 h-16 border-4 border-heritage-primary border-t-transparent rounded-full animate-spin"></div>
-          <h3 className="text-lg font-bold text-gray-700 mt-4">AI is magic-ing...</h3>
-          <p className="text-sm text-gray-500">Extracting details with Gemini API</p>
-        </div>
-      )}
-
-      {step === 'review' && (
-        <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4">
-          <div className="bg-green-50 text-green-800 p-3 rounded-lg flex items-center gap-2 text-sm font-medium border border-green-200">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-            AI Draft Ready! Please review and edit.
-          </div>
-
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-4">
-            {uploadedPhotoUrl && !uploadedPhotoUrl.includes('unsplash') && (
-               <img src={uploadedPhotoUrl} alt="Product" className="w-full h-40 object-cover rounded-lg border border-gray-200" />
-            )}
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Title</label>
-              <input 
-                type="text" 
-                value={formData.title}
-                onChange={e => setFormData({...formData, title: e.target.value})}
-                className="w-full text-lg font-bold border-b border-gray-200 focus:border-heritage-primary outline-none py-1"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
-              <textarea 
-                value={formData.description}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-                className="w-full text-sm border border-gray-200 rounded-lg p-3 min-h-[100px] outline-none focus:border-heritage-primary"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Tags</label>
-              <input 
-                type="text" 
-                value={formData.tags}
-                onChange={e => setFormData({...formData, tags: e.target.value})}
-                className="w-full text-sm border border-gray-200 rounded-lg p-3 outline-none focus:border-heritage-primary"
-              />
-            </div>
-
-            <button 
-              onClick={() => setStep('pricing')}
-              className="w-full bg-heritage-primary text-white p-4 rounded-xl font-bold text-lg mt-2 shadow-md flex justify-center items-center gap-2"
-            >
-              Continue to Pricing <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 'pricing' && (
-        <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-right-4">
-          <div className="bg-blue-50 text-blue-800 p-3 rounded-lg flex gap-3 text-sm border border-blue-200">
-            <Calculator className="w-8 h-8 text-blue-600 shrink-0" />
-            <p><strong>Fair Pricing Engine:</strong> We suggest a price based on your input to ensure you earn a living wage.</p>
-          </div>
-
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-5">
-            <div className="flex items-center justify-between gap-4">
-              <label className="text-sm font-bold text-gray-700">Material Cost (₹)</label>
-              <input 
-                type="number" 
-                name="materialsCost"
-                value={formData.materialsCost}
-                onChange={handlePricingChange}
-                className="w-24 border border-gray-300 rounded-lg p-2 text-right font-bold"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between gap-4">
-              <label className="text-sm font-bold text-gray-700">Labor Time (Hours)</label>
-              <input 
-                type="number" 
-                name="laborHours"
-                value={formData.laborHours}
-                onChange={handlePricingChange}
-                className="w-24 border border-gray-300 rounded-lg p-2 text-right font-bold"
-              />
-            </div>
-
-            <hr className="my-2" />
-
-            <div className="bg-gray-50 p-4 rounded-lg flex justify-between items-center border border-gray-200">
-              <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">Suggested Price</p>
-                <p className="text-xs text-gray-400 mt-1">Includes 20% margin</p>
-              </div>
-              <p className="text-2xl font-bold text-heritage-primary">₹{formData.suggestedPrice}</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Your Final Price (₹)</label>
-              <input 
-                type="number" 
-                value={formData.finalPrice}
-                onChange={e => setFormData({...formData, finalPrice: Number(e.target.value)})}
-                className="w-full text-2xl font-bold border-2 border-heritage-secondary rounded-xl focus:border-heritage-primary outline-none p-4 text-center"
-              />
-            </div>
-
-            <button 
-              onClick={handlePublish}
-              className="w-full bg-green-600 text-white p-4 rounded-xl font-bold text-lg mt-4 shadow-md flex justify-center items-center gap-2"
-            >
-              <CheckCircle2 className="w-5 h-5" /> Publish to Catalog
-            </button>
-            <button 
-              onClick={() => setStep('review')}
-              className="w-full text-gray-500 py-2 font-medium"
-            >
-              Back to Details
-            </button>
-          </div>
-        </div>
-      )}
+      <button onClick={() => setShowForm(true)} className="flex items-center justify-center gap-2 text-heritage-primary font-bold py-3 mt-4">
+         <Upload className="w-4 h-4" /> Enter Manually Instead
+      </button>
     </div>
   );
 };
+
+
+

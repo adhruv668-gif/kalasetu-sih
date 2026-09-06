@@ -1,9 +1,11 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ChevronLeft, Trash2, ArrowRight } from 'lucide-react';
 
 export const Cart: React.FC = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { products } = useAppContext();
   
@@ -30,7 +32,7 @@ export const Cart: React.FC = () => {
         ) : (
           <div className="flex flex-col gap-6">
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 flex gap-4 relative">
-              <img src={cartItem.photoUrl} alt={cartItem.title} className="w-24 h-24 object-cover rounded-xl" />
+              <img src={cartItem.photoUrl} alt={cartItem.title} className="w-24 h-24 object-cover rounded-xl" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://placehold.co/600x600/F0F4F8/003366?text=Image+Unavailable"; }} />
               <div className="flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-gray-800 leading-tight">{cartItem.title}</h3>
@@ -79,3 +81,5 @@ export const Cart: React.FC = () => {
     </div>
   );
 };
+
+

@@ -5,6 +5,8 @@ export interface Artisan {
   craft: string;
   bio: string;
   photoUrl: string;
+  uid?: string;
+  phone?: string;
 }
 
 export interface Product {
@@ -21,6 +23,7 @@ export interface Product {
   photoUrl: string;
   status: 'draft' | 'published';
   syncStatus: 'synced' | 'pending';
+  createdAt?: any;
 }
 
 export interface PricingBreakdown {
