@@ -22,7 +22,7 @@ export const translations = {
     buyer: {
       login: {
         title: "Citizen Login",
-        subtitle: "Access KalaSetu to discover authentic Indian crafts.",
+        subtitle: "Access Kaarvi to discover authentic Indian crafts.",
         mobileLabel: "Mobile Number",
         mobilePlaceholder: "Enter 10-digit number",
         sendOtp: "Request OTP",
@@ -41,7 +41,7 @@ export const translations = {
         fairShare: "Fair Share Transparency",
         artisan: "Artisan",
         platform: "Platform",
-        fairShareText: "By eliminating middlemen, KalaSetu ensures the artisan receives their full asked price directly.",
+        fairShareText: "By eliminating middlemen, Kaarvi ensures the artisan receives their full asked price directly.",
         govtVerified: "Government Verified",
         govtVerifiedDesc: "This product is certified authentic and the artisan's identity is verified via Aadhaar & Ministry records.",
         giTag: "GI Tag Registered Craft",
@@ -90,7 +90,7 @@ export const translations = {
         details: "Any additional details...",
         submit: "Submit Report",
         success: "Report Logged",
-        successDesc: "Thank you. KalaSetu takes IP theft seriously. Our team will investigate this claim and take down counterfeit listings to protect this artisan."
+        successDesc: "Thank you. Kaarvi takes IP theft seriously. Our team will investigate this claim and take down counterfeit listings to protect this artisan."
       }
     },
     artisan: {

@@ -13,7 +13,9 @@ export interface Product {
   id: string;
   artisanId: string;
   title: string;
+  titleHi?: string;
   description: string;
+  descriptionHi?: string;
   category: string;
   tags: string[];
   materialsCost: number;
@@ -21,6 +23,10 @@ export interface Product {
   suggestedPrice: number;
   finalPrice: number;
   photoUrl: string;
+  originalPhotoUrl?: string;
+  isStudioEnhanced?: boolean;
+  craftLineage?: string;
+  seoKeywords?: string[];
   status: 'draft' | 'published';
   syncStatus: 'synced' | 'pending';
   createdAt?: any;

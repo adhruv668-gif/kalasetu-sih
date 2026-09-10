@@ -1,4 +1,4 @@
-package com.gov.kalasetu;
+package com.gov.kaarvi;
 
 import com.getcapacitor.BridgeActivity;
 

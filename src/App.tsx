@@ -23,19 +23,20 @@ import { Loader2 } from 'lucide-react';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthLoading } = useAuth();
+  const isDemo = typeof window !== 'undefined' && window.location.search.includes('demo=true');
 
-  if (isAuthLoading) {
+  if (isAuthLoading && !isDemo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-heritage-bg">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-heritage-primary animate-spin" />
-          <p className="text-sm text-gray-500 font-medium">Loading KalaSetu...</p>
+          <p className="text-sm text-gray-500 font-medium">Loading Kaarvi...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
+  if (!user && !isDemo) {
     return <Navigate to="/login" replace />;
   }
 

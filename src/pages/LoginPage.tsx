@@ -12,7 +12,7 @@ export const LoginPage: React.FC = () => {
   const { t } = useLanguage();
   const {
     phoneNumber, setPhoneNumber, handleSendOTP, handleVerifyOTP,
-    authError, user, userRole, setUserRole, setArtisanProfile
+    authError, devOtpCode, user, userRole, setUserRole, setArtisanProfile
   } = useAuth();
   const navigate = useNavigate();
 
@@ -104,7 +104,7 @@ export const LoginPage: React.FC = () => {
         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg mx-auto mb-3">
           <span className="text-heritage-primary font-black text-3xl">K</span>
         </div>
-        <h1 className="font-bold text-2xl text-white tracking-tight">KalaSetu</h1>
+        <h1 className="font-bold text-2xl text-white tracking-tight">Kaarvi</h1>
         <p className="text-[10px] text-white/80 uppercase tracking-[0.25em] font-medium mt-1">Ministry of Social Justice & Empowerment</p>
         <p className="text-[10px] text-white/60 uppercase tracking-widest">Government of India</p>
       </header>
@@ -113,7 +113,7 @@ export const LoginPage: React.FC = () => {
         {/* ─── Step: Phone Number ─── */}
         {step === 'phone' && (
           <div className="flex-1 flex flex-col">
-            <h2 className="text-xl font-bold text-gray-800 mb-1">Welcome to KalaSetu</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">Welcome to Kaarvi</h2>
             <p className="text-sm text-gray-500 mb-6">Sign in with your mobile number to access the portal.</p>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col gap-4">
@@ -169,6 +169,19 @@ export const LoginPage: React.FC = () => {
             <p className="text-sm text-gray-500 mb-6">Enter the 6-digit code sent to +91 {phoneNumber}</p>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col gap-4">
+              {devOtpCode && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs flex justify-between items-center">
+                  <span>🔑 Test OTP Code: <b>{devOtpCode}</b></span>
+                  <button
+                    type="button"
+                    onClick={() => setOtpCode(devOtpCode)}
+                    className="bg-[#003366] text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-[#002244] transition"
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
+              )}
+
               <input
                 type="text"
                 inputMode="numeric"
@@ -206,7 +219,7 @@ export const LoginPage: React.FC = () => {
               Phone verified successfully!
             </div>
 
-            <h2 className="text-xl font-bold text-gray-800 mb-1">How will you use KalaSetu?</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-1">How will you use Kaarvi?</h2>
             <p className="text-sm text-gray-500 mb-6">You can switch modes later from within the app.</p>
 
             <div className="flex flex-col gap-4">

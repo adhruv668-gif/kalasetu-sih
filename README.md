@@ -1,4 +1,4 @@
-# KalaSetu: AI-Driven Market Linkage for Marginalized Artisans
+# Kaarvi: AI-Driven Market Linkage for Marginalized Artisans
 
 A Smart India Hackathon Prototype.
 
@@ -6,14 +6,14 @@ A Smart India Hackathon Prototype.
 Marginalized artisans lack the digital literacy to catalog their products on standard e-commerce platforms, and often lose out on fair pricing due to middlemen. 
 
 ## Our Solution
-KalaSetu (Bridge of Art) is a mobile-first Progressive Web App that uses **Voice AI and Vision AI** to automate product cataloging. Artisans simply speak into their phones or take a photo, and the AI generates structured listings and suggests a fair price based on material and labor costs.
+Kaarvi (The Artisan / Creator) is a mobile-first Progressive Web App that uses **Voice AI and Vision AI** to automate product cataloging. Artisans simply speak into their phones or take a photo, and the AI generates structured listings and suggests a fair price based on material and labor costs.
 
 ### Key Features
-1. **Voice-to-Catalog & Photo-to-Listing**: AI extracts details and structures them.
-2. **Fair Pricing Engine**: Suggests prices to ensure a living wage based on hours worked.
-3. **Heritage Authenticity Certificate (QR)**: Buyers can scan a QR code to see the artisan's story.
-4. **Transparency Meter**: Buyers see exactly what percentage of their payment goes to the artisan.
-5. **Offline-First Sync**: Artisans can catalog products in low-connectivity areas; the app syncs when online.
+1. **Voice-to-Catalog & Photo-to-Listing**: AI extracts details and structures them in real-time.
+2. **Fair Pricing Engine**: Suggests prices to ensure a living wage based on hours worked and material costs.
+3. **Heritage Authenticity Certificate (QR)**: Buyers can scan a QR code to verify GI authenticity and see the artisan's story.
+4. **Transparency Meter**: Buyers see exactly what percentage of their payment goes directly to the artisan.
+5. **Offline-First Sync**: Artisans can catalog products in low-connectivity areas; the app syncs automatically when online.
 
 ---
 
@@ -41,26 +41,46 @@ graph TD
 
 ## Packaging: PWA & Android APK
 
-KalaSetu is designed to be installed as a real mobile app via two methods:
+Kaarvi is designed to be installed as a real mobile app via two methods:
 
 ### 1. Progressive Web App (PWA)
-The app is fully configured as a PWA with a `manifest.json` and service worker. 
-When hosted and accessed via Chrome or Safari on a mobile device, users will be prompted to **"Add to Home Screen"**. It will install with the KalaSetu app icon and launch in standalone mode (no browser UI).
+The app is fully configured as a PWA with a web manifest and service worker. 
+When hosted and accessed via Chrome or Safari on a mobile device, users will be prompted to **"Add to Home Screen"**. It will install with the Kaarvi app icon and launch in standalone mode (no browser UI).
 
 ### 2. Native Android APK (Capacitor)
-For judges who want to see a native app installation, the project is wrapped in Capacitor.
-To generate or update the APK before a pitch:
+For judges and users who want to see a native app installation, the project is packaged using Capacitor for Android (`com.gov.kaarvi`).
 
-```bash
+#### Prerequisites
+- **Node.js**: v18+
+- **Android SDK**: Build tools 35+ / API 35+ installed (`%LOCALAPPDATA%\Android\Sdk`)
+- **JDK**: OpenJDK 21 LTS installed at `C:\Users\anand\.jdk\jdk-21.0.12.1+1` (or JDK 17/21)
+
+#### Quick 1-Step CLI Build
+Run the provided automated build script:
+```cmd
+build_apk.bat
+```
+
+#### Step-by-Step Manual Build & Sync Commands
+```powershell
 # 1. Build the production web assets
 npm run build
 
-# 2. Sync the built assets to the Android project
+# 2. Sync the built web assets and plugins to Android
 npx cap sync android
 
-# 3. Open Android Studio to build the APK
+# 3. Compile the debug APK directly via Gradle
+$env:JAVA_HOME = "C:\Users\anand\.jdk\jdk-21.0.12.1+1"
+$env:ANDROID_HOME = "C:\Users\anand\AppData\Local\Android\Sdk"
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+cd android
+.\gradlew.bat assembleDebug
+
+# Output APK path:
+# android\app\build\outputs\apk\debug\app-debug.apk
+
+# 4. Open project in Android Studio IDE
 npx cap open android
-# (In Android Studio, go to Build -> Build Bundle(s) / APK(s) -> Build APK(s))
 ```
 
 ---
@@ -70,8 +90,8 @@ npx cap open android
 **Setup:** Run the app locally and open it in a mobile-sized browser window.
 
 **1. Buyer Discovery (0:00 - 0:15)**
-* "Welcome to KalaSetu. We're currently in Buyer Mode looking at the Discovery feed."
-* *Click on 'Decorative Blue Vase'.*
+* "Welcome to Kaarvi. We're currently in Buyer Mode looking at the Discovery feed."
+* *Click on any handicraft item.*
 * "Unlike standard e-commerce, our product pages feature a 'Fair Share Transparency Meter'. Here you can see exactly how much of your money goes directly to the artisan."
 * *Scroll down.*
 * "Every product comes with a QR Authenticity Certificate to prevent fakes."
@@ -85,7 +105,7 @@ npx cap open android
 * "But the real magic is how these products get cataloged. We are now in Artisan Mode. Our artisans often have low digital literacy. So we made cataloging as easy as sending a voice note."
 * *Click 'Add Item' in the bottom nav. Click 'Use Voice (AI)'.*
 * "The artisan just describes what they made in their native language."
-* *Wait for the mock AI to process.*
+* *Wait for the AI to process.*
 * "Our AI pipeline transcribes the audio, translates it, and structures it into a title, description, and tags."
 
 **4. Fair Pricing Engine (0:50 - 1:10)**
@@ -98,7 +118,7 @@ npx cap open android
 * *In DevTools, set Network to Offline. Add another item quickly using the 'Take Photo' shortcut.*
 * "Notice the 'Waiting for Internet' tag in the catalog. It queues locally."
 * *Set Network to Online.*
-* "Once they get a signal, it automatically syncs. This is KalaSetu: bridging the digital divide for India's artisans."
+* "Once they get a signal, it automatically syncs. This is Kaarvi: bridging the digital divide for India's artisans."
 
 ---
 

@@ -20,7 +20,7 @@ export const WhatsAppDemo: React.FC = () => {
               <span className="text-[#075E54] font-bold text-xl">K</span>
             </div>
             <div>
-              <h2 className="font-bold text-lg leading-tight">KalaSetu Bot</h2>
+              <h2 className="font-bold text-lg leading-tight">Kaarvi Bot</h2>
               <p className="text-xs text-white/80">Official Govt. Account</p>
             </div>
           </div>
@@ -40,7 +40,7 @@ export const WhatsAppDemo: React.FC = () => {
 
         <div className="flex gap-2">
           <div className="bg-white p-3 rounded-tr-xl rounded-b-xl shadow-sm max-w-[85%] relative">
-            <p className="text-[15px] text-gray-800">Namaste Ramesh ji! 🙏 Welcome to KalaSetu.</p>
+            <p className="text-[15px] text-gray-800">Namaste Ramesh ji! 🙏 Welcome to Kaarvi.</p>
             <p className="text-[15px] text-gray-800 mt-2">To list a new product, please send a photo of the item, or send a voice note describing it.</p>
             <span className="text-[10px] text-gray-400 absolute bottom-1 right-2">10:42 AM</span>
           </div>

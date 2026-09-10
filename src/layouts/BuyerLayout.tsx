@@ -26,7 +26,7 @@ export const BuyerLayout: React.FC = () => {
               <span className="text-heritage-primary font-black text-xl">K</span>
             </div>
             <div>
-              <h1 className="font-bold text-xl text-white tracking-tight leading-tight">KalaSetu</h1>
+              <h1 className="font-bold text-xl text-white tracking-tight leading-tight">Kaarvi</h1>
               <p className="text-[9px] text-white/80 uppercase tracking-widest font-medium mt-0.5">Govt. of India</p>
             </div>
           </div>

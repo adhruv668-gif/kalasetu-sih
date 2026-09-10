@@ -12,6 +12,8 @@ export const DiscoveryFeed: React.FC = () => {
     .filter(p => p.status === 'published')
     .filter(p => selectedCat === 'All' || p.category.toLowerCase().includes(selectedCat.toLowerCase()) || p.category === selectedCat);
 
+  const categories = ['All', 'Pottery', 'Textiles', 'Woodwork', 'Metalcraft', 'Embroidery', 'Baskets', 'Painting', 'Jewelry'];
+
   return (
     <div className="flex flex-col">
       <div className="px-5 pt-6 pb-2">
@@ -20,11 +22,11 @@ export const DiscoveryFeed: React.FC = () => {
       </div>
 
       <div className="flex gap-3 overflow-x-auto px-5 py-4 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {['All', 'Pottery', 'Weaving', 'Woodwork', 'Metalcraft'].map(cat => (
+        {categories.map(cat => (
           <button 
             key={cat} 
             onClick={() => setSelectedCat(cat)}
-            className={`snap-start shrink-0 px-6 py-2.5 rounded-xl border text-sm font-bold shadow-sm transition-all duration-300 btn-press
+            className={`snap-start shrink-0 px-5 py-2.5 rounded-xl border text-sm font-bold shadow-sm transition-all duration-300 btn-press
               ${selectedCat === cat ? 'bg-heritage-primary text-white border-heritage-primary shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
           >
             {cat}
@@ -76,6 +78,3 @@ export const DiscoveryFeed: React.FC = () => {
     </div>
   );
 };
-
-
-

@@ -24,5 +24,8 @@ dev-dist
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
+
+# Scratch test files
+test_*
+inspect_pptx.py

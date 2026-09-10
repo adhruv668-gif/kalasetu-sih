@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
-import { ChevronLeft, ShieldCheck, ChevronRight, AlertTriangle, Award } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, ChevronRight, AlertTriangle, Award, ShoppingBag, CheckCircle2 } from 'lucide-react';
 
 export const ProductDetails: React.FC = () => {
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { products, artisans } = useAppContext();
+  const { products, artisans, addToCart } = useAppContext();
   const [showCounterfeitModal, setShowCounterfeitModal] = useState(false);
   const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
   
   const product = products.find(p => p.id === id);
   if (!product) return <div className="p-8 text-center text-gray-500">{t.buyer.details.notFound}</div>;
@@ -43,10 +44,28 @@ export const ProductDetails: React.FC = () => {
       <div className="px-6 py-8 flex flex-col gap-6 -mt-8 bg-white rounded-t-3xl relative z-10 shadow-lg border-t border-gray-100">
         <div>
           <div className="flex justify-between items-start gap-4">
-            <h1 className="text-2xl font-black text-gray-900 leading-tight tracking-tight">{product.title}</h1>
+            <div>
+              <h1 className="text-2xl font-black text-gray-900 leading-tight tracking-tight">{product.title}</h1>
+              {product.titleHi && (
+                <p className="text-sm font-semibold text-amber-900/80 mt-0.5">{product.titleHi}</p>
+              )}
+            </div>
             <p className="text-3xl font-black text-heritage-primary shrink-0">₹{product.finalPrice}</p>
           </div>
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed">{product.description}</p>
+
+          {product.isStudioEnhanced && (
+            <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-900 text-xs px-2.5 py-1 rounded-full font-bold mt-2">
+              <span>✨ Studio Background Isolated</span>
+            </div>
+          )}
+
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed">{product.description}</p>
+          {product.descriptionHi && (
+            <div className="mt-3 p-3 bg-amber-50/50 rounded-xl border border-amber-100/60 text-xs text-gray-700 leading-relaxed">
+              <span className="font-bold text-amber-900 block mb-0.5">पारंपरिक शिल्प विवरण:</span>
+              {product.descriptionHi}
+            </div>
+          )}
         </div>
 
         <Link to={`/artisan/${artisan.id}`} className="bg-orange-50/50 border border-orange-100 p-4 rounded-2xl flex items-center gap-4 btn-press card-hover">
@@ -107,9 +126,32 @@ export const ProductDetails: React.FC = () => {
           Report Suspected Counterfeit
         </button>
 
-        <Link to="/cart" className="w-full bg-gray-900 text-white font-bold text-lg py-4.5 rounded-2xl shadow-[0_8px_20px_-8px_rgba(0,0,0,0.5)] mt-2 btn-press block text-center">
-          Add to Bag
-        </Link>
+        <div className="flex gap-3 mt-2">
+          <button 
+            onClick={async () => {
+              await addToCart(product.id);
+              setIsAdded(true);
+              setTimeout(() => setIsAdded(false), 2500);
+            }}
+            className="flex-1 bg-gray-900 text-white font-bold text-base py-4 rounded-2xl shadow-[0_8px_20px_-8px_rgba(0,0,0,0.5)] btn-press flex items-center justify-center gap-2 transition-all"
+          >
+            {isAdded ? (
+              <>
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
+                <span>Added to Bag!</span>
+              </>
+            ) : (
+              <span>{t.buyer.details.addToBag}</span>
+            )}
+          </button>
+          <Link 
+            to="/cart" 
+            className="px-5 bg-heritage-primary text-white font-bold text-sm py-4 rounded-2xl shadow-md btn-press flex items-center justify-center gap-1.5"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>Bag</span>
+          </Link>
+        </div>
       </div>
 
       {/* NEW: Counterfeit Modal */}
@@ -141,7 +183,7 @@ export const ProductDetails: React.FC = () => {
                 <ShieldCheck className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="font-bold text-xl text-gray-900 mb-2">{t.buyer.fakeModal.success}</h3>
                 <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                  Thank you. KalaSetu takes IP theft seriously. Our team will investigate this claim and take down counterfeit listings to protect this artisan.
+                  {t.buyer.fakeModal.successDesc}
                 </p>
                 <button onClick={() => { setShowCounterfeitModal(false); setReportSubmitted(false); }} className="w-full py-3 font-bold text-white bg-gray-900 rounded-xl btn-press">
                   Close

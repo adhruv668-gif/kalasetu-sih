@@ -13,8 +13,8 @@ export default defineConfig({
         enabled: true
       },
       manifest: {
-        name: 'KalaSetu',
-        short_name: 'KalaSetu',
+        name: 'Kaarvi',
+        short_name: 'Kaarvi',
         description: 'AI-Driven Market Linkage & Smart Cataloging for Marginalized Artisans',
         theme_color: '#003366',
         background_color: '#F0F4F8',
