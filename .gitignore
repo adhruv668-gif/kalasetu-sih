@@ -26,6 +26,11 @@ dev-dist
 *.njsproj
 *.sw?
 
-# Scratch test files
+# Temporary & scratch files
 test_*
-inspect_pptx.py
+*.pptx
+*.ppt
+*.pdf
+*.pyc
+__pycache__/
+*.zip

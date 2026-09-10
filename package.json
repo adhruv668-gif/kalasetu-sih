@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:apk": "scripts\\build_apk.bat",
+    "cap:sync": "npx cap sync android",
     "lint": "oxlint",
     "preview": "vite preview"
   },

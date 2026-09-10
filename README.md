@@ -56,9 +56,10 @@ For judges and users who want to see a native app installation, the project is p
 - **JDK**: OpenJDK 21 LTS installed at `C:\Users\anand\.jdk\jdk-21.0.12.1+1` (or JDK 17/21)
 
 #### Quick 1-Step CLI Build
-Run the provided automated build script:
-```cmd
-build_apk.bat
+```bash
+npm run build:apk
+# or execute directly:
+scripts\build_apk.bat
 ```
 
 #### Step-by-Step Manual Build & Sync Commands
@@ -67,7 +68,7 @@ build_apk.bat
 npm run build
 
 # 2. Sync the built web assets and plugins to Android
-npx cap sync android
+npm run cap:sync
 
 # 3. Compile the debug APK directly via Gradle
 $env:JAVA_HOME = "C:\Users\anand\.jdk\jdk-21.0.12.1+1"
@@ -82,6 +83,13 @@ cd android
 # 4. Open project in Android Studio IDE
 npx cap open android
 ```
+
+---
+
+## Documentation
+
+- **SIH Pitch Deck Outline**: [docs/PITCH_DECK.md](docs/PITCH_DECK.md) ([Interactive HTML Slide Deck](docs/PITCH_DECK.html))
+- **Team Knowledge & Jury Defense Guide**: [docs/TEAM_KNOWLEDGE_GUIDE.md](docs/TEAM_KNOWLEDGE_GUIDE.md) ([Interactive HTML Defense Guide](docs/TEAM_KNOWLEDGE_GUIDE.html))
 
 ---
 
